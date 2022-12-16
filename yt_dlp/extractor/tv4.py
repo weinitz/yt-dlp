@@ -29,12 +29,16 @@ class TV4IE(InfoExtractor):
                 'id': '2491650',
                 'ext': 'mp4',
                 'title': 'Kalla Fakta 5 (english subtitles)',
-                'thumbnail': r're:^https?://.*\.jpg$',
+                'description': '2491650',
+                'series': 'Kalla fakta',
+                'thumbnail': r're:^https?://.*/img/[^/]+$',
                 'timestamp': int,
+                'duration': 1335,
                 'upload_date': '20131125',
             },
         },
         {
+            'skip': True,
             'url': 'http://www.tv4play.se/iframe/video/3054113',
             'md5': 'cb837212f342d77cec06e6dad190e96d',
             'info_dict': {
@@ -73,22 +77,27 @@ class TV4IE(InfoExtractor):
         video_id = self._match_id(url)
 
         info = self._download_json(
-            'https://playback-api.b17g.net/asset/%s' % video_id,
+            'https://playback2.a2d.tv/asset/%s' % video_id,
             video_id, 'Downloading video info JSON', query={
                 'service': 'tv4',
                 'device': 'browser',
+                'browser': 'GoogleChrome',
                 'protocol': 'hls,dash',
                 'drm': 'widevine',
+                'capabilities':  'live-drm-adstitch-2,expired_assets'
             })['metadata']
 
         title = info['title']
 
         manifest_url = self._download_json(
-            'https://playback-api.b17g.net/media/' + video_id,
+            'https://playback2.a2d.tv/play/%s' % video_id,
             video_id, query={
                 'service': 'tv4',
                 'device': 'browser',
-                'protocol': 'hls',
+                'browser': 'GoogleChrome',
+                'protocol': 'hls,dash',
+                'drm': 'widevine',
+                'capabilities':  'live-drm-adstitch-2,expired_assets'
             })['playbackItem']['manifestUrl']
         formats = []
         subtitles = {}
@@ -125,12 +134,11 @@ class TV4IE(InfoExtractor):
             'formats': formats,
             'subtitles': subtitles,
             'description': info.get('description'),
-            'timestamp': parse_iso8601(info.get('broadcast_date_time')),
+            'timestamp': parse_iso8601(info.get('broadcastDateTime')),
             'duration': int_or_none(info.get('duration')),
             'thumbnail': info.get('image'),
             'is_live': info.get('isLive') is True,
             'series': info.get('seriesTitle'),
             'season_number': int_or_none(info.get('seasonNumber')),
-            'episode': info.get('episodeTitle'),
             'episode_number': int_or_none(info.get('episodeNumber')),
         }
